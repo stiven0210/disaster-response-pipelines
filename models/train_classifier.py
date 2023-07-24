@@ -19,7 +19,19 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sqlalchemy import create_engine
 
-# load data from database
+def load_data(database_filepath, table_name='CleanedDataTable'):
+    """Load cleaned data from database into dataframe.
+
+    Args:
+        database_filepath: String. It contains cleaned data table.
+        table_name: String. It contains cleaned data.
+
+    Returns:
+       X: numpy.ndarray. Disaster messages.
+       Y: numpy.ndarray. Disaster categories for each messages.
+       category_name: list. Disaster category names.
+    """
+    # load data from database
 def load_data(database_filepath, table_name='CleanedDataTable'):        
     engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql_table(table_name, con=engine)
@@ -33,6 +45,15 @@ def load_data(database_filepath, table_name='CleanedDataTable'):
 
 
 def tokenize(text, lemmatizer=WordNetLemmatizer()):
+    """Tokenize text (a disaster message).
+
+    Args:
+        text: String. A disaster message.
+        lemmatizer: nltk.stem.Lemmatizer.
+
+    Returns:
+        list. It contains tokens.
+    """
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
@@ -44,6 +65,15 @@ def tokenize(text, lemmatizer=WordNetLemmatizer()):
 
 
 def save_stats(X, Y, category_names, vocabulary_stats_filepath, category_stats_filepath):
+    """Save stats
+
+    Args;
+        X: numpy.ndarray. Disaster messages.
+        Y: numpy.ndarray. Disaster categories for each messages.
+        category_names: Disaster category names.
+        vocaburary_stats_filepath: String. Vocaburary stats is saved as pickel into this file.
+        category_stats_filepath: String. Category stats is saved as pickel into this file.
+    """	   
     # Check vocabulary
     vect = CountVectorizer(tokenizer=tokenize)
     X_vectorized = vect.fit_transform(X)
@@ -63,6 +93,12 @@ def save_stats(X, Y, category_names, vocabulary_stats_filepath, category_stats_f
 
 
 def build_model():
+    """Build model.
+
+    Returns:
+        pipline: sklearn.model_selection.GridSearchCV. It contains a sklearn estimator.
+    """
+    # Set pipeline				  
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
@@ -84,6 +120,15 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """Evaluate model
+
+    Args:
+        model: sklearn.model_selection.GridSearchCV.  It contains a sklearn estimator.
+        X_test: numpy.ndarray. Disaster messages.
+        Y_test: numpy.ndarray. Disaster categories for each messages
+        category_names: Disaster category names.
+    """
+    # Predict categories of messages.									 
     Y_pred = model.predict(X_test)
     for i in range(0, len(category_names)):
         print(category_names[i])
@@ -96,6 +141,12 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """Save model
+
+    Args:
+        model: sklearn.model_selection.GridSearchCV. It contains a sklearn estimator.
+        model_filepath: String. Trained model is saved as pickel into this file.
+    """	   
     with open(model_filepath, 'wb') as file:
         pickle.dump(model, file)
 
